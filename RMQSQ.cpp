@@ -3,34 +3,29 @@ using namespace std;
 #define tani_nachi_ke  ios_base::sync_with_stdio(false); cin.tie(NULL);
 #define M_PI 3.14159265358979323846
 int const N = 100009;
-int tree[4*N],arr[N];
-
-void build(int l, int r, int node)
+int const K = 17;
+int logs[N+1],st[N][K+1];
+int arr[N];
+void preprocess(int n)
 {
-  if(l == r)
-    {
-      tree[node] = arr[l];
-      return;
-    }
+  logs[1] = 0;
+  for(int i = 2; i <= N; i++)
+    logs[i] = logs[i/2] + 1;
 
-  int mid = (l + r)/2;
-  build(l, mid, 2*node);
-  build(mid+1, r, 2*node + 1);
-  tree[node] = min(tree[2*node], tree[2*node+1]);
+  for(int i = 0; i < n; i++)
+    st[i][0] = arr[i];
+
+  for(int j = 1; j <= K; j++)
+  {
+    for(int i = 0; i + (1<<j) <= n; i++)
+      st[i][j] = min(st[i][j-1], st[i + (1 << (j-1))][j-1]);
+  }
 }
 
-int querry(int l, int r, int node, int tl, int tr)
+int querry(int l, int r)
 {
-  if(l>tr || r<tl)
-    return INT_MAX;
-  else if(l>=tl && r<=tr)
-    return tree[node];
-  else
-  {
-    int mid = (l + r)/2;
-    return min(querry(l, mid, 2*node, tl ,tr), querry(mid+1, r, 2*node+1, tl, tr));
-  }
-
+  int j = logs[r - l + 1];
+  return min(st[l][j], st[r - (1 << j) + 1][j]);
 }
 int main()
 {
@@ -42,17 +37,16 @@ freopen("output.txt", "w", stdout);
 tani_nachi_ke  
 int n;
 cin>>n;
-for(int i = 1; i <= n; i++)
+for(int i = 0; i < n; i++)
   cin>>arr[i];
-build(1, n, 1);
+preprocess(n);
 
 int q,l,r;
 cin>>q;
 while(q--)
 {
   cin>>l>>r;
-  l++; r++;
-  cout<<querry(1, n, 1, l, r)<<endl;
+  cout<<querry(l,r)<<'\n';
 }
 
 #ifndef ONLINE_JUDGE 
